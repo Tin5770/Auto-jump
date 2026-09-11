@@ -1,0 +1,415 @@
+-- สร้าง ScreenGui หลัก
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoControlGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- 1. Main Frame (หน้าต่างหลัก)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 240, 0, 420)
+mainFrame.Position = UDim2.new(0.5, -120, 0.4, -210)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 10)
+mainCorner.Parent = mainFrame
+
+-- Title Bar (แถบหัวข้อสำหรับลากและพับ)
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 35)
+titleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleBar
+
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, -40, 1, 0)
+titleText.Position = UDim2.new(0, 10, 0, 0)
+titleText.Text = "Auto Tools & Cheats"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.Font = Enum.Font.SourceSansBold
+titleText.TextSize = 16
+titleText.BackgroundTransparency = 1
+titleText.Parent = titleBar
+
+-- ปุ่มพับ/เก็บหน้าต่าง (Minimize Button)
+local toggleFoldBtn = Instance.new("TextButton")
+toggleFoldBtn.Size = UDim2.new(0, 25, 0, 25)
+toggleFoldBtn.Position = UDim2.new(1, -30, 0, 5)
+toggleFoldBtn.Text = "-"
+toggleFoldBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleFoldBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+toggleFoldBtn.Font = Enum.Font.SourceSansBold
+toggleFoldBtn.TextSize = 18
+toggleFoldBtn.Parent = titleBar
+
+local foldCorner = Instance.new("UICorner")
+foldCorner.CornerRadius = UDim.new(0, 6)
+foldCorner.Parent = toggleFoldBtn
+
+-- Container สำหรับใส่ปุ่มและ Slider ต่างๆ
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, -20, 1, -45)
+contentFrame.Position = UDim2.new(0, 10, 0, 40)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
+
+local uiListLayout = Instance.new("UIListLayout")
+uiListLayout.Padding = UDim.new(0, 8)
+uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiListLayout.Parent = contentFrame
+
+-- 2. ปุ่ม Auto Jump
+local jumpBtn = Instance.new("TextButton")
+jumpBtn.Size = UDim2.new(1, 0, 0, 38)
+jumpBtn.Text = "Auto Jump: OFF"
+jumpBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+jumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+jumpBtn.Font = Enum.Font.SourceSansBold
+jumpBtn.TextSize = 15
+jumpBtn.LayoutOrder = 1
+jumpBtn.Parent = contentFrame
+
+local jumpCorner = Instance.new("UICorner")
+jumpCorner.CornerRadius = UDim.new(0, 8)
+jumpCorner.Parent = jumpBtn
+
+-- 3. ปุ่ม Auto Walk
+local walkBtn = Instance.new("TextButton")
+walkBtn.Size = UDim2.new(1, 0, 0, 38)
+walkBtn.Text = "Auto Walk: OFF"
+walkBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+walkBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+walkBtn.Font = Enum.Font.SourceSansBold
+walkBtn.TextSize = 15
+walkBtn.LayoutOrder = 2
+walkBtn.Parent = contentFrame
+
+local walkCorner = Instance.new("UICorner")
+walkCorner.CornerRadius = UDim.new(0, 8)
+walkCorner.Parent = walkBtn
+
+-- 4. ปุ่ม Noclip (ทะลุกำแพง)
+local noclipBtn = Instance.new("TextButton")
+noclipBtn.Size = UDim2.new(1, 0, 0, 38)
+noclipBtn.Text = "Noclip: OFF"
+noclipBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+noclipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipBtn.Font = Enum.Font.SourceSansBold
+noclipBtn.TextSize = 15
+noclipBtn.LayoutOrder = 3
+noclipBtn.Parent = contentFrame
+
+local noclipCorner = Instance.new("UICorner")
+noclipCorner.CornerRadius = UDim.new(0, 8)
+noclipCorner.Parent = noclipBtn
+
+--------------------------------------------------------------------------------
+-- Helper Function: สร้าง Slider Component
+--------------------------------------------------------------------------------
+local function createSlider(name, minVal, maxVal, defaultVal, layoutOrder, onValueChanged)
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.new(1, 0, 0, 75)
+	frame.BackgroundColor3 = Color3.fromRGB(45, 45, 58)
+	frame.BorderSizePixel = 0
+	frame.LayoutOrder = layoutOrder
+	frame.Parent = contentFrame
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = frame
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -10, 0, 22)
+	label.Position = UDim2.new(0, 5, 0, 3)
+	label.Text = name .. ": " .. tostring(defaultVal)
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.Font = Enum.Font.SourceSansBold
+	label.TextSize = 14
+	label.BackgroundTransparency = 1
+	label.Parent = frame
+
+	local bg = Instance.new("Frame")
+	bg.Size = UDim2.new(1, -20, 0, 8)
+	bg.Position = UDim2.new(0, 10, 0, 30)
+	bg.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+	bg.BorderSizePixel = 0
+	bg.Parent = frame
+
+	local bgCorner = Instance.new("UICorner")
+	bgCorner.CornerRadius = UDim.new(0, 4)
+	bgCorner.Parent = bg
+
+	local fill = Instance.new("Frame")
+	fill.Size = UDim2.new((defaultVal - minVal) / (maxVal - minVal), 0, 1, 0)
+	fill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+	fill.BorderSizePixel = 0
+	fill.Parent = bg
+
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(0, 4)
+	fillCorner.Parent = fill
+
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0, 16, 0, 16)
+	btn.Position = UDim2.new(0, -8, 0.5, -8)
+	btn.Text = ""
+	btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Parent = fill
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(1, 0)
+	btnCorner.Parent = btn
+
+	local resetBtn = Instance.new("TextButton")
+	resetBtn.Size = UDim2.new(1, -20, 0, 20)
+	resetBtn.Position = UDim2.new(0, 10, 0, 48)
+	resetBtn.Text = "Reset (" .. tostring(defaultVal) .. ")"
+	resetBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+	resetBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+	resetBtn.Font = Enum.Font.SourceSans
+	resetBtn.TextSize = 12
+	resetBtn.Parent = frame
+
+	local resetCorner = Instance.new("UICorner")
+	resetCorner.CornerRadius = UDim.new(0, 5)
+	resetCorner.Parent = resetBtn
+
+	local currentValue = defaultVal
+	local isDragging = false
+
+	local function setValue(val)
+		currentValue = math.clamp(math.floor(val), minVal, maxVal)
+		label.Text = name .. ": " .. tostring(currentValue)
+		local alpha = (currentValue - minVal) / (maxVal - minVal)
+		fill.Size = UDim2.new(alpha, 0, 1, 0)
+		onValueChanged(currentValue)
+	end
+
+	local function updateFromInput(input)
+		local absolutePos = bg.AbsolutePosition.X
+		local absoluteSize = bg.AbsoluteSize.X
+		local scale = math.clamp((input.Position.X - absolutePos) / absoluteSize, 0, 1)
+		setValue(minVal + (scale * (maxVal - minVal)))
+	end
+
+	bg.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = true
+			updateFromInput(input)
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			updateFromInput(input)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = false
+		end
+	end)
+
+	resetBtn.MouseButton1Click:Connect(function()
+		setValue(defaultVal)
+	end)
+
+	return function() return currentValue end
+end
+
+--------------------------------------------------------------------------------
+-- สร้าง WalkSpeed & JumpPower Sliders
+--------------------------------------------------------------------------------
+local currentSpeed = 16
+local currentJumpPower = 50
+
+local getSpeed = createSlider("Walk Speed", 16, 200, 16, 4, function(val)
+	currentSpeed = val
+	local character = localPlayer.Character
+	if character then
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid then humanoid.WalkSpeed = val end
+	end
+end)
+
+local getJumpPower = createSlider("Jump Power", 50, 300, 50, 5, function(val)
+	currentJumpPower = val
+	local character = localPlayer.Character
+	if character then
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.UseJumpPower = true
+			humanoid.JumpPower = val
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- ระบบ GUI Dragging (ทำให้เลื่อน/ลาก GUI ได้)
+--------------------------------------------------------------------------------
+local dragging, dragInput, dragStart, startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+titleBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = mainFrame.Position
+		
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		update(input)
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- ระบบพับ/เก็บหน้าต่าง (Fold System)
+--------------------------------------------------------------------------------
+local isFolded = false
+
+toggleFoldBtn.MouseButton1Click:Connect(function()
+	isFolded = not isFolded
+	if isFolded then
+		contentFrame.Visible = false
+		mainFrame.Size = UDim2.new(0, 240, 0, 35)
+		toggleFoldBtn.Text = "+"
+	else
+		contentFrame.Visible = true
+		mainFrame.Size = UDim2.new(0, 240, 0, 420)
+		toggleFoldBtn.Text = "-"
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- ระบบ Auto Jump / Auto Walk / Noclip
+--------------------------------------------------------------------------------
+local autoJumpEnabled = false
+local autoWalkEnabled = false
+local noclipEnabled = false
+
+jumpBtn.MouseButton1Click:Connect(function()
+	autoJumpEnabled = not autoJumpEnabled
+	if autoJumpEnabled then
+		jumpBtn.Text = "Auto Jump: ON"
+		jumpBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 50)
+	else
+		jumpBtn.Text = "Auto Jump: OFF"
+		jumpBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+	end
+end)
+
+walkBtn.MouseButton1Click:Connect(function()
+	autoWalkEnabled = not autoWalkEnabled
+	if autoWalkEnabled then
+		walkBtn.Text = "Auto Walk: ON"
+		walkBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 50)
+	else
+		walkBtn.Text = "Auto Walk: OFF"
+		walkBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+	end
+end)
+
+-- ฟังก์ชั่นสำหรับตั้งค่าการชนคืนเมื่อปิด Noclip
+local function disableNoclip()
+	local character = localPlayer.Character
+	if character then
+		for _, part in ipairs(character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				-- ตั้งค่า CanCollide กลับเป็น true ให้ชิ้นส่วนหลัก
+				if part.Name == "HumanoidRootPart" or part.Name == "Torso" or part.Name == "UpperTorso" or part.Name == "LowerTorso" or part.Name == "Head" then
+					part.CanCollide = true
+				end
+			end
+		end
+	end
+end
+
+noclipBtn.MouseButton1Click:Connect(function()
+	noclipEnabled = not noclipEnabled
+	if noclipEnabled then
+		noclipBtn.Text = "Noclip: ON"
+		noclipBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 50)
+	else
+		noclipBtn.Text = "Noclip: OFF"
+		noclipBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+		disableNoclip() -- คืนค่า CanCollide ทันทีที่ปิด
+	end
+end)
+
+-- Loop สำหรับปิด CanCollide ขณะ Noclip ทำงาน
+RunService.Stepped:Connect(function()
+	if noclipEnabled then
+		local character = localPlayer.Character
+		if character then
+			for _, part in ipairs(character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+				end
+			end
+		end
+	end
+end)
+
+-- Loop การทำงานหลักสำหรับ WalkSpeed / JumpPower / Auto Controls
+RunService.RenderStepped:Connect(function()
+	local character = localPlayer.Character
+	if not character then return end
+	
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return end
+	
+	humanoid.UseJumpPower = true
+	
+	if humanoid.WalkSpeed ~= currentSpeed then
+		humanoid.WalkSpeed = currentSpeed
+	end
+	
+	if humanoid.JumpPower ~= currentJumpPower then
+		humanoid.JumpPower = currentJumpPower
+	end
+	
+	if autoJumpEnabled then
+		humanoid.Jump = true
+	end
+	
+	if autoWalkEnabled then
+		humanoid:Move(Vector3.new(0, 0, -1), true)
+	end
+end)
